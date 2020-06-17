@@ -4,7 +4,8 @@
 Interfaz::Interfaz(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Interfaz),
-    netcsv(new CsvToDb)
+    netcsv(new CsvToDb),
+    SIR(new InterfazSIR(netcsv))
 {
     ui->setupUi(this);
     this->setWindowTitle("Proyecto QVID-19   v2.0");
@@ -12,16 +13,26 @@ Interfaz::Interfaz(QWidget *parent) :
     ui->prbProgreso->setValue(0);
     ui->prbProgreso->setTextVisible(false);
 
-    ui->listPaises->addItems(netcsv->getPaises());
     if (netcsv->getForzar_actualizacion()){
         this->forzarAct();
     }
+    ui->listPaises->addItems(netcsv->getPaises());
+    connect(this,SIGNAL(sig_SIR(QString)),SIR,SLOT(iniciar(QString)));
 }
 
 Interfaz::~Interfaz()
 {
     delete ui;
     delete netcsv;
+}
+
+void Interfaz::delay(int millisecondsWait)
+{
+    QEventLoop loop;
+    QTimer t;
+    t.connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
+    t.start(millisecondsWait);
+    loop.exec();
 }
 
 void Interfaz::paintEvent(QPaintEvent *)
@@ -33,17 +44,17 @@ void Interfaz::paintEvent(QPaintEvent *)
     QPen lapiz;
     lapiz.setColor(QColor(0,0,0));
     painter.setPen(lapiz);
-    painter.fillRect(QRect(0,0,this->width(),this->height()),QColor(174,23,23));
-    painter.drawImage(this->width()-140,7,QImage("../bd/UBPLogo.png").scaled(130,50));
+    painter.fillRect(QRect(0,0,this->width(),this->height()),QColor(255,255,255));
+    painter.drawImage(this->width()-140,7,QImage(":/LOGO").scaled(130,50));
     painter.drawRect(QRect(esquin_arriba_izq,esquin_abajo_der));
-    painter.fillRect(QRect(esquin_arriba_izq,esquin_abajo_der),QColor(0,0,0));
+    painter.fillRect(QRect(esquin_arriba_izq,esquin_abajo_der),QColor(255,255,255));
     QFont serifFont("Times", 10, QFont::Bold);
     lapiz.setColor(QColor(255,255,0));
     lapiz.setWidth(5);
     painter.setPen(lapiz);
     painter.drawRect(QRect(ui->teInfo->pos().x(),ui->teInfo->pos().y(),ui->teInfo->width(),ui->teInfo->height()));
     ui->teInfo->setFont(serifFont);
-    ui->lCero->setText("<font color='white'>0</font>");
+    ui->lCero->setText("0");
 
     //Busco el número más grande de contagios/recuperados/muertos para realizar la escala
     int maxCant=0;
@@ -147,6 +158,10 @@ void Interfaz::listar_regiones(QString pais)
 
 void Interfaz::calcular_datos()
 {
+    ui->chkMuert->setChecked(true);
+    ui->chkRecup->setChecked(true);
+    ui->chkConfir->setChecked(true);
+
     ui->teInfo->clear();
     this->dat_muert.clear();
     this->dat_recup.clear();
@@ -193,14 +208,14 @@ void Interfaz::calcular_datos()
             maxCant = dat_recup.at(i).at(1).toInt();
         }
     }
-    ui->lTotalCant->setText("<font color='white'>Total:\n"+QString::number(maxCant)+"</font>");
+    ui->lTotalCant->setText("Total:"+QString::number(maxCant));
     ui->lTotalCant->setAlignment(Qt::AlignRight);
-    ui->lPriFecha->setText("<font color='white'>Día 0: "+dat_confir.at(0).at(0)+"</font>");
-    ui->lUltFecha->setText("<font color='white'>Día "+QString::number(dat_confir.size())+": "+dat_confir.last().at(0)+"</font>");
+    ui->lPriFecha->setText("Día 0: "+dat_confir.at(0).at(0));
+    ui->lUltFecha->setText("Día "+QString::number(dat_confir.size())+": "+dat_confir.last().at(0));
 
 
     ui->teInfo->setAlignment(Qt::AlignCenter);
-    ui->teInfo->setTextColor(QColor(255,255,0));
+    ui->teInfo->setTextColor(QColor(0,0,0));
     ui->teInfo->append("País:");
     ui->teInfo->append(pais+"\n");
     ui->teInfo->append("Región/Provincia:");
@@ -210,15 +225,15 @@ void Interfaz::calcular_datos()
     ui->teInfo->append("Casos confirmados a la fecha:");
     ui->teInfo->setTextColor(QColor(0,0,255));
     ui->teInfo->append(dat_confir.last().at(1)+"\n");
-    ui->teInfo->setTextColor(QColor(255,255,0));
+    ui->teInfo->setTextColor(QColor(0,0,0));
     ui->teInfo->append("Casos recuperados a la fecha:");
     ui->teInfo->setTextColor(QColor(0,175,0));
     ui->teInfo->append(dat_recup.last().at(1)+"\n");
-    ui->teInfo->setTextColor(QColor(255,255,0));
+    ui->teInfo->setTextColor(QColor(0,0,0));
     ui->teInfo->append("Muertos acumulados hasta la fecha:");
     ui->teInfo->setTextColor(QColor(250,0,0));
     ui->teInfo->append(dat_muert.last().at(1));
-    ui->teInfo->setTextColor(QColor(255,255,0));
+    ui->teInfo->setTextColor(QColor(0,0,0));
 }
 
 void Interfaz::actualizar_bd()
@@ -282,4 +297,9 @@ void Interfaz::forzarAct()
     ui->chkMuert->setToolTip("Actualice primero la base de datos!");
     ui->chkRecup->setToolTip("Actualice primero la base de datos!");
     ui->chkConfir->setToolTip("Actualice primero la base de datos!");
+}
+
+void Interfaz::mostrar_SIR()
+{
+    emit sig_SIR(ui->listPaises->currentText());
 }

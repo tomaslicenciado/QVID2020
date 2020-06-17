@@ -1,0 +1,15 @@
+adminbd.o
+basicsir.o
+cpp_desolve.o
+csvtodb.o
+grafico.o
+interfaz.o
+interfazsir.o
+main.o
+qrc_recursos.o
+moc_adminbd.o
+moc_basicsir.o
+moc_csvtodb.o
+moc_grafico.o
+moc_interfaz.o
+moc_interfazsir.o

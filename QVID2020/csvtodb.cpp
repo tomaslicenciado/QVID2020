@@ -9,7 +9,9 @@ CsvToDb::CsvToDb(QObject *parent):QObject(parent),
                                   lineas_csv(new QList<QByteArray>)
 
 {
-    if (base.conectar(BD_STR)==2){
+    if (base.conectar(BD_STR)==2)
+    //if (base.conectar(BD_HOST,BD_NAME,BD_USER,BD_PASS,BD_TIPO,BD_PORT) == 2)
+    {
         forzar_actualizacion = true;
     }
     else{
@@ -475,6 +477,9 @@ void CsvToDb::cargar_csv(QNetworkReply *reply)
     //Controlo que el csv no esté vacío y extraigo la pirmer línea, la cual contiene el nombre de todos los campos
     if ( ! lineas_csv->isEmpty() )  {
         *nombres_campos_csv = lineas_csv->at( 0 ).split( ',' );
+        for (int i=0;i<nombres_campos_csv->size();i++){
+            nombres_campos_csv->value(i).replace("\"","");
+        }
         lineas_csv->removeFirst();
     }
 
@@ -496,6 +501,9 @@ void CsvToDb::cargar_csv(QNetworkReply *reply)
             linea_con_comillas.replace( primer_comilla, segunda_comilla - primer_comilla, cadena_con_coma );
             linea_con_comillas.replace("\"","");
             lineas_csv->replace( i, linea_con_comillas.toUtf8() );
+        }
+        if (lineas_csv->at( i ).contains( "\"" )){
+            lineas_csv->value(i).replace("\"","");
         }
         if (lineas_csv->at(i).contains("\'")){
             QString remplazo = lineas_csv->at(i);

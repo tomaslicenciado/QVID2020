@@ -11,6 +11,7 @@
 #include <QSqlRecord>
 #include <QSqlResult>
 #include <QVariant>  //Tipo devuelto por query.value
+#include <QtSql>
 
 //Clases auxiliares
 #include <QFileInfo>
@@ -27,6 +28,7 @@ public:
     ~AdminBD();
 
     int conectar( QString str_arch_bd );
+    int conectar (QString host, QString base, QString user, QString pass, QString tipo, QString puerto);
     QVector< QStringList > consulta ( QString str_consulta);
     bool insertar(QString str_dato);
 

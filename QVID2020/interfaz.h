@@ -7,6 +7,9 @@
 #include <QMouseEvent>
 #include <QToolTip>
 #include "csvtodb.h"
+#include <QTimer>
+#include <QEventLoop>
+#include "interfazsir.h"
 
 namespace Ui {
 class Interfaz;
@@ -28,6 +31,8 @@ private:
     QVector<QStringList> dat_recup;
     QVector<QStringList> dat_confir;
     QVector<QStringList> dat_muert;
+    void delay(int millisecondsWait);
+    InterfazSIR* SIR;
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -39,6 +44,7 @@ private slots:
     void proximamente();
     void mostrarProgreso(QString strTabla,int maxV,int actV);
     void forzarAct();
+    void mostrar_SIR();
 
 public slots:
 
@@ -46,6 +52,7 @@ signals:
     void sRango(int,int);
     void sValor(int);
     void sTexto(QString);
+    void sig_SIR(QString);
 
 };
 
